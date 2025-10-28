@@ -15,8 +15,11 @@ import ShareButton from '@/components/properties/ShareButton';
 import UserInfo from '@/components/properties/UserInfo';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { fetchPropertyDetails } from '@/utils/actions'
+import { fetchPropertyDetails, findExistingReview } from '@/utils/actions'
 import PropertyMap from '@/components/properties/PropertyMap';
+import SubmitReview from '@/components/reviews/SubmitReview';
+import PropertyReviews from '@/components/reviews/PropertyReviews';
+import { auth } from '@clerk/nextjs/server';
 
 // const DynamicMap = dynamic(() => import('@/components/properties/PropertyMap'),
 //   {
@@ -28,6 +31,10 @@ import PropertyMap from '@/components/properties/PropertyMap';
 
 const PropertyDetailsPage = async({params}: {params: {id: string}}) => {
 
+    const { userId } = auth();
+
+     
+
     const property = await fetchPropertyDetails(params.id)
 
      if (!property) redirect('/');
@@ -37,6 +44,11 @@ const PropertyDetailsPage = async({params}: {params: {id: string}}) => {
 
      const firstName = property.profile.firstName;
      const profileImage = property.profile.profileImage;
+
+     const isNotOwner = property.profile.clerkId !== userId
+
+   const reviewDoesNotExist =
+    userId && isNotOwner && !(await findExistingReview(userId, property.id));
 
   return (
     <section>
@@ -72,7 +84,11 @@ const PropertyDetailsPage = async({params}: {params: {id: string}}) => {
        <div className='lg:col-span-4 flex flex-col items-center'>
          <BookingCalendar/>
        </div>
-  </section>
+   </section>
+
+     {reviewDoesNotExist && <SubmitReview propertyId={property.id} />}
+     <PropertyReviews propertyId={property.id} />
+
     </section>
   )
 }
