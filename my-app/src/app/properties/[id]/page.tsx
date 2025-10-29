@@ -20,6 +20,7 @@ import PropertyMap from '@/components/properties/PropertyMap';
 import SubmitReview from '@/components/reviews/SubmitReview';
 import PropertyReviews from '@/components/reviews/PropertyReviews';
 import { auth } from '@clerk/nextjs/server';
+import dynamic from 'next/dynamic';
 
 // const DynamicMap = dynamic(() => import('@/components/properties/PropertyMap'),
 //   {
@@ -27,6 +28,15 @@ import { auth } from '@clerk/nextjs/server';
 //     loading: () => <Skeleton className='h-[400px] w-full' />,
 //   }
 // );
+
+
+const DynamicBookingWrapper = dynamic(
+  () => import('@/components/booking/BookingWrapper'),
+  {
+    ssr: false,
+    loading: () => <Skeleton className='h-[200px] w-full' />,
+  }
+);
 
 
 const PropertyDetailsPage = async({params}: {params: {id: string}}) => {
@@ -82,7 +92,10 @@ const PropertyDetailsPage = async({params}: {params: {id: string}}) => {
           <Amenities amenities={property.amenities} />
         </div>
        <div className='lg:col-span-4 flex flex-col items-center'>
-         <BookingCalendar/>
+          <DynamicBookingWrapper
+            propertyId={property.id}
+            price={property.price}
+            bookings={property.bookings}/>
        </div>
    </section>
 
